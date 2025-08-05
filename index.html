@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Malla Interactiva - Ingeniería Química</title>
   <style>
+  
     body {
       font-family: Arial, sans-serif;
       background: #f4f4f4;
@@ -21,6 +22,7 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 1rem;
+      margin-bottom: 2rem;
     }
     .materia {
       background: #fff;
@@ -40,12 +42,36 @@
       color: #888;
       cursor: not-allowed;
     }
-    .materia.aprobada {
+    .materia.firmada {
       text-decoration: line-through;
       background: #d4edda;
       border-color: #28a745;
       color: #155724;
     }
+    .materia.aprobada {
+      text-decoration: line-through;
+      background: #e3d2ff;
+      border-color: #6f42c1;
+      color: #3f0071;
+    }
+    table {
+      margin: 0 auto;
+      width: 80%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 1rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+  </style>
+  
+  
+  
   </style>
 </head>
 <body>
@@ -97,7 +123,19 @@
       { id: "CCEP", nombre: "Calidad y Control Estadístico", req: ["PyE", "AM1"] },
       { id: "PPS", nombre: "Práctica Profesional", req: ["DSOSP", "OU1", "TET", "OU2", "IRQ", "OI", "BME", "FQ", "FT", "QAp", "eco"] }
     ];
-
+ <h2 style="text-align:center">Finales pendientes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Materia</th>
+        <th>Observación</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-finales">
+      <!-- Filas generadas automáticamente -->
+    </tbody>
+  </table>
+ <script>
     const aprobadas = JSON.parse(localStorage.getItem("aprobadas")) || [];
 
     function guardarEstado() {
@@ -133,6 +171,54 @@
         container.appendChild(div);
       });
     }
+
+    const materias = [/* ... (mismo array que antes) ... */];
+
+    const estados = JSON.parse(localStorage.getItem("estados")) || {};
+
+    function guardarEstado() {
+      localStorage.setItem("estados", JSON.stringify(estados));
+    }
+
+    function puedeDesbloquear(m) {
+      return m.req.every((r) => estados[r] >= 1);
+    }
+
+    function render() {
+      const container = document.getElementById("malla");
+      const tabla = document.getElementById("tabla-finales");
+      container.innerHTML = "";
+      tabla.innerHTML = "";
+
+      materias.forEach((m) => {
+        const estado = estados[m.id] || 0; // 0 = bloqueada, 1 = firmada, 2 = aprobada
+        const div = document.createElement("div");
+        div.className = "materia";
+        div.innerText = m.nombre;
+
+        if (estado === 2) {
+          div.classList.add("aprobada");
+        } else if (estado === 1) {
+          div.classList.add("firmada");
+        } else if (!puedeDesbloquear(m)) {
+          div.classList.add("bloqueada");
+        }
+
+        div.onclick = () => {
+          if (!puedeDesbloquear(m)) return;
+          estados[m.id] = (estado + 1) % 3; // ciclo: 0 → 1 → 2 → 0
+          guardarEstado();
+          render();
+        };
+
+        container.appendChild(div);
+
+        if (estado === 1) {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${m.nombre}</td><td>Falta rendir final</td>`;
+          tabla.appendChild(row);
+        }
+    
 
     render();
   </script>
