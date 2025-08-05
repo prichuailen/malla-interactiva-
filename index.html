@@ -25,17 +25,16 @@
       margin-bottom: 2rem;
     }
     .materia {
-      background: #fff;
-      padding: 1rem;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 200px;
-      text-align: center;
-      user-select: none;
-    }
+    padding: 8px;
+    margin: 4px;
+    border: 1px solid #ccc;
+    display: inline-block;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    background-color: #f0f0f0;
+    transition: all 0.3s;
+  }
     .materia.bloqueada {
       background: #eee;
       border-color: #aaa;
@@ -44,15 +43,11 @@
     }
     .materia.firmada {
       text-decoration: line-through;
-      background: #d4edda;
-      border-color: #28a745;
-      color: #155724;
+      background-color: #a0e7a0 !important; /* Verde */
     }
     .materia.aprobada {
       text-decoration: line-through;
-      background: #e3d2ff;
-      border-color: #6f42c1;
-      color: #3f0071;
+      background-color: #d0a0f0 !important; /* Violeta */
     }
     table {
       margin: 0 auto;
@@ -70,9 +65,6 @@
     }
   </style>
   
-  
-  
-  </style>
 </head>
 <body>
   <h1>Malla Interactiva - Ingeniería Química</h1>
@@ -123,18 +115,16 @@
       { id: "CCEP", nombre: "Calidad y Control Estadístico", req: ["PyE", "AM1"] },
       { id: "PPS", nombre: "Práctica Profesional", req: ["DSOSP", "OU1", "TET", "OU2", "IRQ", "OI", "BME", "FQ", "FT", "QAp", "eco"] }
     ];
- <h2 style="text-align:center">Finales pendientes</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Materia</th>
-        <th>Observación</th>
-      </tr>
-    </thead>
-    <tbody id="tabla-finales">
-      <!-- Filas generadas automáticamente -->
-    </tbody>
-  </table>
+<h2>Finales pendientes</h2>
+<table id="tabla-finales" border="1" style="margin-top:10px;">
+  <thead>
+    <tr>
+      <th>Materia</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
  <script>
     const aprobadas = JSON.parse(localStorage.getItem("aprobadas")) || [];
 
@@ -208,8 +198,7 @@
           if (!puedeDesbloquear(m)) return;
           estados[m.id] = (estado + 1) % 3; // ciclo: 0 → 1 → 2 → 0
           guardarEstado();
-          render();
-        };
+  
 
         container.appendChild(div);
 
@@ -219,6 +208,49 @@
           tabla.appendChild(row);
         }
     
+  const materias = document.querySelectorAll('.materia');
+
+  materias.forEach(materia => {
+    materia.addEventListener('click', () => {
+      if (materia.classList.contains('aprobada')) {
+        materia.classList.remove('aprobada');
+        materia.classList.remove('firmada');
+        localStorage.setItem(materia.id, 'pendiente');
+      } else if (materia.classList.contains('firmada')) {
+        materia.classList.remove('firmada');
+        materia.classList.add('aprobada');
+        localStorage.setItem(materia.id, 'aprobada');
+      } else {
+        materia.classList.add('firmada');
+        localStorage.setItem(materia.id, 'firmada');
+      }
+      actualizarFinalesPendientes();
+    });
+
+    // Restaurar estado desde localStorage
+    const estado = localStorage.getItem(materia.id);
+    if (estado === 'firmada') materia.classList.add('firmada');
+    if (estado === 'aprobada') materia.classList.add('aprobada');
+  });
+<script>
+  function actualizarFinalesPendientes() {
+    const tabla = document.getElementById("tabla-finales").querySelector("tbody");
+    tabla.innerHTML = ""; // Limpiar tabla
+
+    materias.forEach(materia => {
+      const estado = localStorage.getItem(materia.id);
+      if (estado === 'firmada') {
+        const fila = document.createElement("tr");
+        const celda = document.createElement("td");
+        celda.textContent = materia.textContent;
+        fila.appendChild(celda);
+        tabla.appendChild(fila);
+      }
+    });
+  }
+
+  // Ejecutar al cargar
+  actualizarFinalesPendientes();
 
     render();
   </script>
